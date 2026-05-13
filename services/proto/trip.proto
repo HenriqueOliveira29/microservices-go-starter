@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package trip.v1alpha1;
+
+option go_package = "./proto";
+
+// The Trip Service definition
+service TripService {
+  // Create a new trip with ride fare information
+  rpc CreateTrip (CreateTripRequest) returns (TripResponse) {}
+}
+
+// Represents a ride fare
+message RideFare {
+  string id = 1;                        // MongoDB ObjectID as string
+  string user_id = 2;
+  string package_slug = 3;
+  double total_price_in_cents = 4;
+}
+
+// Request to create a new trip
+message CreateTripRequest {
+  string user_id = 1;
+  RideFare ride_fare = 2;
+}
+
+// Response containing trip information
+message TripResponse {
+  string id = 1;           // MongoDB ObjectID as string
+  string user_id = 2;
+  string status = 3;       // e.g., "pending", "in_progress", "completed"
+  RideFare ride_fare = 4;
+}

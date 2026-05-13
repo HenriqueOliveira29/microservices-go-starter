@@ -1,32 +1,31 @@
 package main
 
 import (
-	"context"
 	"log"
-	"ride-sharing/services/trip-service/internal/domain"
+	"net"
+
+	"ride-sharing/services/proto/proto"
+	"ride-sharing/services/trip-service/internal/infrastructure/grpcserver"
 	"ride-sharing/services/trip-service/internal/infrastructure/repository"
 	"ride-sharing/services/trip-service/internal/service"
-	"time"
+
+	"google.golang.org/grpc"
 )
 
 func main() {
 	inmemory := repository.NewInMemoryTripRepository()
-
 	svc := service.NewTripService(*inmemory)
 
-	// Example usage
-	fare := &domain.RideFareModel{
-		UserID: "42",
-	}
-
-	t, err := svc.CreateTrip(context.Background(), fare)
+	listener, err := net.Listen("tcp", ":50051")
 	if err != nil {
-		log.Println(err)
+		log.Fatalf("failed to listen: %v", err)
 	}
 
-	log.Println(t)
+	grpcServer := grpc.NewServer()
+	proto.RegisterTripServiceServer(grpcServer, grpcserver.NewTripServiceServer(svc))
 
-	for {
-		time.Sleep(time.Second)
+	log.Println("Trip service gRPC server listening on :50051")
+	if err := grpcServer.Serve(listener); err != nil {
+		log.Fatalf("grpc serve: %v", err)
 	}
 }
