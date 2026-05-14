@@ -7,14 +7,19 @@ interface StripePaymentButtonProps {
   isLoading?: boolean
 }
 
-// Initialize Stripe
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
+const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+const stripePromise = publishableKey ? loadStripe(publishableKey) : null
 
 export const StripePaymentButton = ({
   paymentSession,
   isLoading = false,
 }: StripePaymentButtonProps) => {
   const handlePayment = async () => {
+    if (!stripePromise) {
+      console.error("Stripe publishable key is missing")
+      return
+    }
+
     const stripe = await stripePromise
 
     if (!stripe) {

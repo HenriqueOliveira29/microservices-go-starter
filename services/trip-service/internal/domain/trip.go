@@ -20,3 +20,7 @@ type TripRepository interface {
 type TripService interface {
 	CreateTrip(ctx context.Context, fare *RideFareModel) (*TripModel, error)
 }
+
+type TripEventPublisher interface {
+	PublishTripCreated(ctx context.Context, trip *TripModel) error
+}

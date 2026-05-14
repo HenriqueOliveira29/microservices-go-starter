@@ -6,3 +6,4 @@ data:
   ENVIRONMENT: "development"
   GATEWAY_HTTP_ADDR: ":8081"
   TRIP_SERVICE_ADDR: "trip-service:50051"
+  AMQP_URL: "amqp://guest:guest@rabbitmq:5672/"

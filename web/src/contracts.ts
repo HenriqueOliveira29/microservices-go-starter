@@ -68,7 +68,12 @@ interface PaymentSessionCreatedRequest {
 
 interface DriverAssignedRequest {
   type: TripEvents.DriverAssigned;
-  data: Trip;
+  data: {
+    trip_id: string;
+    rider_id: string;
+    status: string;
+    driver: Driver;
+  };
 }
 
 interface DriverLocationRequest {

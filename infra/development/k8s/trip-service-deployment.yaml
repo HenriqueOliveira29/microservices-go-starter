@@ -17,6 +17,12 @@ spec:
           image: ride-sharing/trip-service
           ports:
             - containerPort: 50051
+          env:
+            - name: AMQP_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: AMQP_URL
           resources:
             requests:
               memory: "64Mi"

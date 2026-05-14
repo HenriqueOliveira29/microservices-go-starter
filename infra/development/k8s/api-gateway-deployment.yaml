@@ -36,6 +36,11 @@ spec:
                 configMapKeyRef:
                   key: TRIP_SERVICE_ADDR
                   name: app-config
+            - name: AMQP_URL
+              valueFrom:
+                configMapKeyRef:
+                  key: AMQP_URL
+                  name: app-config
 ---
 apiVersion: v1
 kind: Service
