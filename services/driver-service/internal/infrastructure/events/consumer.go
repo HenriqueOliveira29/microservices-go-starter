@@ -69,6 +69,10 @@ func (c *TripEventConsumer) handleTripEvent(msg amqp.Delivery) error {
 	// Assign a driver to the trip
 	assignment, err := c.service.AssignDriverToTrip(context.Background(), tripEvent.TripID, tripEvent.UserID)
 	if err != nil {
+		if err == service.ErrNoAvailableDrivers {
+			log.Printf("No available drivers for trip %s", tripEvent.TripID)
+			return nil
+		}
 		log.Printf("Failed to assign driver to trip %s: %v", tripEvent.TripID, err)
 		return err
 	}

@@ -4,7 +4,7 @@ import { Coordinate, Driver, Route, RouteFare, Trip } from "./types";
 // These are the endpoints the API Gateway must have for the frontend to work correctly
 export enum BackendEndpoints {
   PREVIEW_TRIP = "/trip/preview",
-  START_TRIP = "/trip/start",
+  START_TRIP = "/trip/create",
   WS_DRIVERS = "/drivers",
   WS_RIDERS = "/riders",
 }
@@ -90,14 +90,19 @@ interface DriverResponseToTripResponse {
   };
 }
 
+export interface HTTPTripStartResponse {
+  id: string;
+}
+
 export interface HTTPTripPreviewResponse {
   route: Route;
   rideFares: RouteFare[];
 }
 
 export interface HTTPTripStartRequestPayload {
-  rideFareID: string;
-  userID: string;
+  user_id: string;
+  package_slug: string;
+  total_price_in_cents: number;
 }
 
 export interface HTTPTripPreviewRequestPayload {

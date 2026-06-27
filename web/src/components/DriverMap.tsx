@@ -4,7 +4,7 @@ import { useDriverStreamConnection } from "../hooks/useDriverStreamConnection"
 import { MapContainer, Marker, Popup, TileLayer } from 'react-leaflet'
 import L from 'leaflet';
 import { MapClickHandler } from './MapClickHandler';
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRef } from "react";
 import { CarPackageSlug, Coordinate } from "../types";
 import { DriverTripOverview } from "./DriverTripOverview";
@@ -40,6 +40,33 @@ export const DriverMap = ({ packageSlug }: { packageSlug: CarPackageSlug }) => {
   const mapRef = useRef<L.Map>(null)
   const userID = useMemo(() => crypto.randomUUID(), [])
   const [riderLocation, setRiderLocation] = useState<Coordinate>(START_LOCATION)
+
+  useEffect(() => {
+    if (!navigator?.geolocation) {
+      return
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const coords: Coordinate = {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        }
+        setRiderLocation(coords)
+        if (mapRef.current) {
+          mapRef.current.setView([coords.latitude, coords.longitude], 13)
+        }
+      },
+      (error) => {
+        console.warn('Geolocation error:', error)
+      },
+      {
+        enableHighAccuracy: true,
+        maximumAge: 10000,
+        timeout: 10000,
+      }
+    )
+  }, [])
 
   const driverGeohash = useMemo(() =>
     Geohash.encode(riderLocation?.latitude, riderLocation?.longitude, 7)

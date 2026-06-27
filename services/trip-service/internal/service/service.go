@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"log"
 
 	"ride-sharing/services/trip-service/internal/domain"
 	"ride-sharing/services/trip-service/internal/infrastructure/repository"
@@ -36,7 +37,7 @@ func (s *TripService) CreateTrip(ctx context.Context, fare *domain.RideFareModel
 		// Log the error but don't fail the trip creation
 		// In a production system, you might want to implement retry logic or dead letter queues
 		// For now, we'll just log it
-		// log.Printf("Failed to publish trip created event: %v", err)
+		log.Printf("Failed to publish trip created event: %v", err)
 	}
 
 	return createdTrip, nil

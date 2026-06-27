@@ -5,14 +5,14 @@ import { useRiderStreamConnection } from '../hooks/useRiderStreamConnection';
 import { MapContainer, Marker, Popup, Rectangle, TileLayer } from 'react-leaflet'
 import L from 'leaflet';
 import { getGeohashBounds } from '../utils/geohash';
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { MapClickHandler } from './MapClickHandler';
 import { Button } from './ui/button';
-import { RouteFare, RequestRideProps, TripPreview, HTTPTripStartResponse } from "../types";
+import { RouteFare, RequestRideProps, TripPreview } from "../types";
 import { RoutingControl } from "./RoutingControl";
 import { API_URL } from '../constants';
 import { RiderTripOverview } from './RiderTripOverview';
-import { BackendEndpoints, HTTPTripPreviewRequestPayload, HTTPTripPreviewResponse, HTTPTripStartRequestPayload } from '../contracts';
+import { BackendEndpoints, HTTPTripPreviewRequestPayload, HTTPTripPreviewResponse, HTTPTripStartRequestPayload, HTTPTripStartResponse, TripEvents } from '../contracts';
 
 const userMarker = new L.Icon({
     iconUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ed/Map_pin_icon.svg/176px-Map_pin_icon.svg.png",
@@ -34,14 +34,13 @@ export default function RiderMap({ onRouteSelected }: RiderMapProps) {
     const [trip, setTrip] = useState<TripPreview | null>(null)
     const [selectedCarPackage] = useState<RouteFare | null>(null)
     const [destination, setDestination] = useState<[number, number] | null>(null)
+    const [location, setLocation] = useState({
+        latitude: 37.7749,
+        longitude: -122.4194,
+    })
     const mapRef = useRef<L.Map>(null)
     const userID = useMemo(() => crypto.randomUUID(), [])
     const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-    const location = {
-        latitude: 37.7749,
-        longitude: -122.4194,
-    };
 
     const {
         drivers,
@@ -49,8 +48,36 @@ export default function RiderMap({ onRouteSelected }: RiderMapProps) {
         tripStatus,
         assignedDriver,
         paymentSession,
-        resetTripStatus
+        resetTripStatus,
+        setTripStatus,
     } = useRiderStreamConnection(location, userID);
+
+    useEffect(() => {
+        if (!navigator?.geolocation) {
+            return
+        }
+
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const coords = {
+                    latitude: position.coords.latitude,
+                    longitude: position.coords.longitude,
+                }
+                setLocation(coords)
+                if (mapRef.current) {
+                    mapRef.current.setView([coords.latitude, coords.longitude], 13)
+                }
+            },
+            (error) => {
+                console.warn('Geolocation error:', error)
+            },
+            {
+                enableHighAccuracy: true,
+                maximumAge: 10000,
+                timeout: 10000,
+            }
+        )
+    }, [])
 
     console.log(tripStatus)
 
@@ -112,27 +139,32 @@ export default function RiderMap({ onRouteSelected }: RiderMapProps) {
 
     const handleStartTrip = async (fare: RouteFare) => {
         const payload = {
-            rideFareID: fare.id,
-            userID: userID,
+            user_id: userID,
+            package_slug: fare.packageSlug,
+            total_price_in_cents: fare.totalPriceInCents ?? 0,
         } as HTTPTripStartRequestPayload
-
-        if (!fare.id) {
-            alert("No Fare ID in the payload")
-            return
-        }
 
         const response = await fetch(`${API_URL}${BackendEndpoints.START_TRIP}`, {
             method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
             body: JSON.stringify(payload),
         })
         const data = await response.json() as HTTPTripStartResponse
 
+        if (!response.ok) {
+            console.error('Failed to start trip', data)
+            alert('Unable to start trip. Please try again.')
+            return
+        }
+
         if (response.ok && trip) {
             setTrip((prev) => ({
                 ...prev,
-                tripID: data.tripID,
+                tripID: data.id,
             } as TripPreview))
-
+            setTripStatus(TripEvents.Created)
         }
 
         return data

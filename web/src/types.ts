@@ -42,11 +42,6 @@ export interface RouteFare {
     route: Route,
 }
 
-
-export interface HTTPTripStartResponse {
-    tripID: string;
-}
-
 export interface TripPreview {
     tripID: string,
     route: [number, number][],

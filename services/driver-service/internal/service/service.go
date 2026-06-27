@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"math"
@@ -42,6 +43,8 @@ func (s *DriverService) RegisterDriver(ctx context.Context, driver *domain.Drive
 	return s.driverRepo.CreateDriver(ctx, driver)
 }
 
+var ErrNoAvailableDrivers = errors.New("no available drivers found")
+
 func (s *DriverService) AssignDriverToTrip(ctx context.Context, tripID string, riderID string) (*domain.TripAssignment, error) {
 	// For now, we'll assign to a hardcoded location (could be extracted from trip data)
 	// In a real implementation, you'd get the trip location from the trip service
@@ -58,7 +61,7 @@ func (s *DriverService) AssignDriverToTrip(ctx context.Context, tripID string, r
 		if err := s.publisher.PublishNoDriversFound(ctx, tripID); err != nil {
 			log.Printf("Failed to publish no drivers found event: %v", err)
 		}
-		return nil, fmt.Errorf("no available drivers found")
+		return nil, ErrNoAvailableDrivers
 	}
 
 	// For simplicity, assign to the first available driver
