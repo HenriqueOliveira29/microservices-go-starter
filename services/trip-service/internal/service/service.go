@@ -11,11 +11,11 @@ import (
 )
 
 type TripService struct {
-	repo      repository.InMemoryTripRepository
+	repo      repository.MongoTripRepository
 	publisher domain.TripEventPublisher
 }
 
-func NewTripService(repo repository.InMemoryTripRepository, publisher domain.TripEventPublisher) *TripService {
+func NewTripService(repo repository.MongoTripRepository, publisher domain.TripEventPublisher) *TripService {
 	return &TripService{repo: repo, publisher: publisher}
 }
 

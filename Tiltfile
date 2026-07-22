@@ -15,6 +15,13 @@ k8s_resource('rabbitmq', port_forwards=15672, labels="services")
 
 ### End of RabbitMQ ###
 
+### Mongo ###
+k8s_yaml('./infra/development/k8s/mongo-db-deployment.yaml')
+k8s_resource('mongodb', port_forwards=27017, labels="services")
+
+### End Mongo ###
+
+
 ### End of K8s Config ###
 ### API Gateway ###
 

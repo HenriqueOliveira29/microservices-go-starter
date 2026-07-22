@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net"
 
@@ -13,10 +14,28 @@ import (
 	"ride-sharing/shared/env"
 
 	"google.golang.org/grpc"
+
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func main() {
-	inmemory := repository.NewInMemoryTripRepository()
+
+	ctx := context.Background()
+
+	//In memory repository
+	// repo := repository.NewInMemoryTripRepository()
+
+	//connect to mongo
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(env.GetString("MONGO_URI", "mongodb://admin:SuperSecurePassword123!@mongodb-service:27017/?authSource=admin")))
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	db := client.Database("rides")
+
+	repo := repository.NewMongoTripRepository(db)
 
 	// Initialize AMQP publisher for events
 	amqpURL := env.GetString("AMQP_URL", "amqp://guest:guest@localhost:5672/")
@@ -29,7 +48,7 @@ func main() {
 	// Initialize event publisher
 	eventPublisher := events.NewTripEventPublisher(publisher)
 
-	svc := service.NewTripService(*inmemory, eventPublisher)
+	svc := service.NewTripService(*repo, eventPublisher)
 
 	listener, err := net.Listen("tcp", ":50051")
 	if err != nil {
