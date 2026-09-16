@@ -17,7 +17,7 @@ type Driver struct {
 	Email     string             `json:"email" bson:"email"`
 	Phone     string             `json:"phone" bson:"phone"`
 	Status    string             `json:"status" bson:"status"` // available, busy, offline
-	Location  Coordinate         `json:"location" bson:"location"`
+	Location  GeoJSONPoint       `json:"location" bson:"location"`
 	Vehicle   Vehicle            `json:"vehicle" bson:"vehicle"`
 	Rating    float64            `json:"rating" bson:"rating"`
 	TripCount int                `json:"trip_count" bson:"trip_count"`
@@ -32,6 +32,11 @@ type Vehicle struct {
 	Year         int    `json:"year" bson:"year"`
 	LicensePlate string `json:"license_plate" bson:"license_plate"`
 	Color        string `json:"color" bson:"color"`
+}
+
+type GeoJSONPoint struct {
+	Type string `json:"type" bson:"type"`
+	Coordinates []float64 `json:"coordinates" bson:"coordinates"`
 }
 
 // Coordinate represents a geographic coordinate
